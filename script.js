@@ -19,7 +19,8 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-const INIT_ROWS = 60; const INIT_COLS = 26; const EXPAND_BUFFER = 5; const SAVE_DELAY_MS = 1500;
+const INIT_ROWS = 100; const INIT_COLS = 26; const EXPAND_BUFFER = 5; const SAVE_DELAY_MS = 1500;
+const MIN_EMPTY_ROWS = 25; const ROWS_TO_ADD = 25;
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
 const authOverlay = document.getElementById('auth-overlay');
@@ -677,7 +678,9 @@ function makeCell(r, c) {
       applyFormatting(r, c);
       updateFormatButtons();
     }
-    td.classList.add('editing'); scheduleSave();
+    td.classList.add('editing');
+    ensureEmptyRows();
+    scheduleSave();
   };
   input.onblur = () => {
     td.classList.remove('focused', 'editing');
@@ -714,6 +717,33 @@ function moveFocus(r, c) {
 function expandIfNeeded(r, c) {
   if (r >= numRows - EXPAND_BUFFER) { numRows++; addRow(numRows - 1); }
   if (c >= numCols - EXPAND_BUFFER) { numCols++; addColToAllRows(); }
+}
+
+function ensureEmptyRows() {
+  // Find the last row with any content
+  let lastFilledRow = -1;
+  
+  for (let r = numRows - 1; r >= 0; r--) {
+    for (let c = 0; c < numCols; c++) {
+      if (data[`${r},${c}`]) {
+        lastFilledRow = r;
+        break;
+      }
+    }
+    if (lastFilledRow !== -1) break;
+  }
+  
+  // Calculate how many empty rows we have after the last filled row
+  const emptyRowsAtEnd = numRows - 1 - lastFilledRow;
+  
+  // If we don't have enough empty rows, add more
+  if (emptyRowsAtEnd < MIN_EMPTY_ROWS) {
+    const rowsNeeded = ROWS_TO_ADD;
+    for (let i = 0; i < rowsNeeded; i++) {
+      numRows++;
+      addRow(numRows - 1, false);
+    }
+  }
 }
 
 function getCell(r, c) { return sheet.rows[r]?.cells[c]; }
@@ -809,6 +839,19 @@ function startFill(e, startRow, startCol) {
 
 function onFillDrag(e) {
   if (!fillHandleActive || !fillStartCell) return;
+  
+  // Auto-scroll when dragging near edges
+  const wrapperRect = wrapper.getBoundingClientRect();
+  const scrollThreshold = 80; // pixels from edge to trigger scroll
+  const scrollSpeed = 15; // pixels to scroll per iteration
+  
+  if (e.clientY > wrapperRect.bottom - scrollThreshold) {
+    // Near bottom - scroll down
+    wrapper.scrollTop += scrollSpeed;
+  } else if (e.clientY < wrapperRect.top + scrollThreshold) {
+    // Near top - scroll up
+    wrapper.scrollTop -= scrollSpeed;
+  }
   
   // Find which cell the mouse is over
   const target = document.elementFromPoint(e.clientX, e.clientY);
@@ -932,6 +975,7 @@ function onFillEnd() {
   fillStartCell = null;
   fillDragCells = [];
   
+  ensureEmptyRows();
   scheduleSave();
   
   document.removeEventListener('mousemove', onFillDrag);
@@ -999,6 +1043,7 @@ function performUndo() {
       }
     });
     
+    ensureEmptyRows();
     scheduleSave();
   }
 }
@@ -1043,6 +1088,7 @@ function performRedo() {
       }
     });
     
+    ensureEmptyRows();
     scheduleSave();
   }
 }
