@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simple Spreadsheets</title>
+  <link rel="icon" href="hannog.ico" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Login overlay ──────────────────────────────────────── -->
+  <div id="auth-overlay">
+    <div id="auth-box">
+      <h1 id="auth-title">Sign in</h1>
+      <p id="auth-subtitle">Your spreadsheet syncs across every device.</p>
+
+      <div class="field">
+        <label for="auth-email">Email</label>
+        <input id="auth-email" type="email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="auth-password">Password</label>
+        <div class="password-wrap">
+          <input id="auth-password" type="password" placeholder="Password" autocomplete="current-password" />
+          <button id="toggle-password" type="button" aria-label="Show password">
+            <!-- eye open -->
+            <svg id="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <!-- eye off -->
+            <svg id="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
+        <div style="text-align: right; margin-top: 2px;">
+          <button id="forgot-password" style="background: none; border: none; font-size: 11px; color: var(--text-muted); cursor: pointer;">Forgot password?</button>
+        </div>
+      </div>
+
+      <p id="auth-error"></p>
+
+      <button id="auth-submit">Sign in</button>
+      <button id="auth-toggle">Don't have an account? Sign up</button>
+    </div>
+  </div>
+
+  <!-- ── Status bar ─────────────────────────────────────── -->
+  <div id="status-bar">
+    <div id="status-left">
+      <button id="menu-toggle" title="Sheet List">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+      <input id="sheet-name" type="text" value="Untitled Spreadsheet" spellcheck="false" />
+      
+      <div id="format-bar">
+        <button id="btn-bold" title="Bold (Ctrl+B)">B</button>
+        <button id="btn-italic" title="Italic (Ctrl+I)">I</button>
+      </div>
+    </div>
+    <div id="status-right">
+      <button id="btn-settings" title="Sheet Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
+      <button id="sign-out-btn">Sign out</button>
+    </div>
+  </div>
+
+  <!-- ── Settings Modal ─────────────────────────────────── -->
+  <div id="settings-overlay" class="modal-overlay">
+    <div class="modal">
+      <h3>Sheet Settings</h3>
+      <div class="setting-item">
+        <label>
+          <input type="checkbox" id="check-sticky">
+          Stick top row to screen
+        </label>
+      </div>
+      <button id="close-settings">Done</button>
+    </div>
+  </div>
+
+  <!-- ── Delete Confirmation Modal ─────────────────────── -->
+  <div id="delete-overlay" class="modal-overlay">
+    <div class="modal">
+      <h3>Delete sheet?</h3>
+      <p id="delete-confirm-msg" style="font-size: 13px; color: var(--text-dim);">Are you sure you want to delete this sheet?</p>
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button id="cancel-delete" style="flex: 1; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; cursor: pointer;">Cancel</button>
+        <button id="confirm-delete" style="flex: 1; background: var(--danger); color: white; border: none; border-radius: 8px; padding: 8px; cursor: pointer; font-weight: 500;">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Logout Confirmation Modal ─────────────────────── -->
+  <div id="logout-overlay" class="modal-overlay">
+    <div class="modal">
+      <h3>Sign out</h3>
+      <p style="font-size: 13px; color: var(--text-dim);">Are you sure you want to sign out?</p>
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button id="cancel-logout" style="flex: 1; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; cursor: pointer;">Cancel</button>
+        <button id="confirm-logout" style="flex: 1; background: var(--accent); color: white; border: none; border-radius: 8px; padding: 8px; cursor: pointer; font-weight: 500;">Sign out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <div id="sidebar-overlay"></div>
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <h2>My Sheets</h2>
+      <button id="new-sheet-btn" title="Create New Sheet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </button>
+    </div>
+    <div id="sheet-list">
+      <!-- List of sheets will appear here -->
+    </div>
+
+    <!-- ── Archive/Trash Section ────────────────────────── -->
+    <div id="trash-section">
+      <div id="trash-header">
+        <span>Archive</span>
+        <button id="trash-toggle-btn" title="Toggle Archive">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+      </div>
+      <div id="trash-list" class="hidden">
+        <!-- Deleted sheets will appear here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Spreadsheet ────────────────────────────────────── -->
+
+  <div id="sheet-wrapper">
+    <div id="sheet-container">
+      <table id="sheet" cellspacing="0" cellpadding="0"></table>
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
