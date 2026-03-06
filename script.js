@@ -23,6 +23,7 @@ const INIT_ROWS = 100; const INIT_COLS = 26; const EXPAND_BUFFER = 5; const SAVE
 const MIN_EMPTY_ROWS = 25; const ROWS_TO_ADD = 25;
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
+const loadingIndicator = document.getElementById('loading-indicator');
 const authOverlay = document.getElementById('auth-overlay');
 const authTitle = document.getElementById('auth-title');
 const authEmail = document.getElementById('auth-email');
@@ -137,6 +138,9 @@ forgotPassword.onclick = async () => {
 
 
 onAuthStateChanged(auth, async (user) => {
+  // Hide loading indicator regardless of auth state
+  loadingIndicator.classList.add('hidden');
+  
   if (user) {
     currentUid = user.uid;
     await loadIndex();
